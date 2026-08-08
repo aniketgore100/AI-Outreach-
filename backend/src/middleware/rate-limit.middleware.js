@@ -1,0 +1,16 @@
+const rateLimit = require("express-rate-limit");
+
+/** Throttles register/login attempts per IP to blunt credential-stuffing and
+ * brute-force attacks against the auth endpoints. */
+const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many attempts. Please try again later.",
+  },
+});
+
+module.exports = { authRateLimiter };
