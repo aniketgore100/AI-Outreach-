@@ -3,12 +3,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/auth.slice";
 import gmailConnectionReducer from "./slices/gmail-connection.slice";
 import leadListReducer from "./slices/lead-list.slice";
+import templateReducer from "./slices/template.slice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     leadLists: leadListReducer,
     gmailConnections: gmailConnectionReducer,
+    templates: templateReducer,
   },
 });
 

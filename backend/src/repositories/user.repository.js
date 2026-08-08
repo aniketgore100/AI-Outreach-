@@ -13,8 +13,6 @@ class UserRepository {
     return User.findOne({ email }).lean();
   }
 
-  /** Password is select:false on the schema — only opt in where the hash is
-   * actually needed (login's compare step). */
   async findByEmailWithPassword(email) {
     return User.findOne({ email }).select("+password").lean();
   }

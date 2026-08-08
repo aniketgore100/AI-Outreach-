@@ -12,7 +12,9 @@ export function DashboardShell({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { accessToken, isInitialized } = useAppSelector((state) => state.auth);
-  const isConnectionsPage = pathname === "/dashboard/connections";
+  // The connections page and the template editor's two-panel layout both
+  // want the full viewport width rather than the centered content column.
+  const isFullWidthPage = pathname === "/dashboard/connections" || pathname.startsWith("/dashboard/templates/");
 
   useEffect(() => {
     if (isInitialized && !accessToken) {
@@ -33,8 +35,8 @@ export function DashboardShell({ children }: { children: ReactNode }) {
       <Sidebar />
       <div className="flex min-w-0 flex-1 flex-col">
         <TopNavbar />
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
-          <div className={isConnectionsPage ? "w-full" : "mx-auto w-full max-w-6xl"}>{children}</div>
+        <main className="min-w-0 flex-1 px-3 py-3 sm:px-4 sm:py-4">
+          <div className={isFullWidthPage ? "w-full" : "mx-auto w-full max-w-[1600px]"}>{children}</div>
         </main>
       </div>
     </div>

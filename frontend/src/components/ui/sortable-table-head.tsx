@@ -30,7 +30,7 @@ export function SortableTableHead<TKey extends string>({
         type="button"
         onClick={() => onSortChange(sortKey)}
         className={cn(
-          "inline-flex items-center gap-1 uppercase tracking-wide transition-colors hover:text-foreground",
+          "inline-flex items-center gap-1 transition-colors hover:text-foreground",
           isActive && "text-foreground"
         )}
       >

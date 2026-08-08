@@ -12,8 +12,6 @@ const { create, list, getOne, remove, listLeads, getLead } = require("../control
 
 const router = Router();
 
-// Larger body limit than other routers — this carries the fully-parsed
-// CSV/XLSX rows as JSON (parsing happens client-side, see frontend).
 router.use(express.json({ limit: "15mb" }));
 router.use(authenticate);
 

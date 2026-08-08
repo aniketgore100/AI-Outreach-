@@ -11,14 +11,14 @@ function Table({
   ...props
 }: React.HTMLAttributes<HTMLTableElement> & { containerClassName?: string }) {
   return (
-    <div className={cn("w-full overflow-x-auto rounded-md border border-border", containerClassName)}>
+    <div className={cn("w-full overflow-x-auto rounded-md border border-border/70 bg-card", containerClassName)}>
       <table className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
 }
 
 function TableHeader({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn("bg-muted", className)} {...props} />;
+  return <thead className={cn("bg-muted/60", className)} {...props} />;
 }
 
 function TableBody({ className, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) {
@@ -32,7 +32,7 @@ function TableRow({
 }: Omit<HTMLMotionProps<"tr">, "ref"> & { clickable?: boolean }) {
   return (
     <motion.tr
-      className={cn("h-11 transition-colors", clickable && "cursor-pointer hover:bg-accent", className)}
+      className={cn("h-10 transition-colors", clickable && "cursor-pointer hover:bg-accent/60", className)}
       layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
@@ -48,7 +48,7 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
   return (
     <th
       className={cn(
-        "px-3 py-2 text-left text-caption font-medium uppercase tracking-wide text-muted-foreground",
+        "px-2.5 py-1.5 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-muted-foreground",
         className
       )}
       {...props}
@@ -57,7 +57,7 @@ function TableHead({ className, ...props }: React.ThHTMLAttributes<HTMLTableCell
 }
 
 function TableCell({ className, ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn("px-3 py-2 text-body text-foreground", className)} {...props} />;
+  return <td className={cn("px-2.5 py-1.5 text-body text-foreground", className)} {...props} />;
 }
 
 export { Table, TableHeader, TableBody, TableRow, TableHead, TableCell };

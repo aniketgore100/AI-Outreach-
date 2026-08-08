@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { CircleAlert, ExternalLink, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { GoogleIcon } from "@/components/icons/google-icon";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearConnectError, startGoogleOAuth } from "@/store/slices/gmail-connection.slice";
 
@@ -44,8 +44,8 @@ export function ConnectGmailDialog({ open, onOpenChange }: ConnectGmailDialogPro
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <GoogleIcon className="h-5 w-5" />
-            Connect Google Account
+            <Image src="/gmailLogo.png" alt="" width={20} height={20} unoptimized className="h-5 w-5" />
+            Connect Gmail Account
           </DialogTitle>
           <DialogDescription>
             We&apos;ll send you to Google&apos;s consent screen so you can authorize this workspace securely. The

@@ -2,9 +2,18 @@ const mongoose = require("mongoose");
 
 const platformConfigSchema = new mongoose.Schema(
   {
-    key: { type: String, required: true, unique: true },
-    value: { type: mongoose.Schema.Types.Mixed, required: true },
-    description: { type: String },
+    key: { 
+      type: String, 
+      required: true,
+       unique: true 
+      },
+    value: { 
+      type: mongoose.Schema.Types.Mixed, 
+      required: true 
+    },
+    description: { 
+      type: String 
+    },
   },
   { timestamps: true, collection: "platform_config" }
 );

@@ -12,16 +12,6 @@ class LeadListRepository {
 
   async listForUser(userId, { page, limit, search }) {
     const query = { userId };
-
-    // `search` has already passed Zod's z.string() check by the time it gets
-    // here (see validators/lead-list.validator.js) — a query-string injection
-    // attempt like ?search[$gt]= parses to an object, which Zod rejects with
-    // a 400 before this ever runs, so `search` is guaranteed to be a plain,
-    // length-capped, angle-bracket-free string. escapeRegex then neutralizes
-    // it as a $regex pattern, so it can only ever match as a literal
-    // substring — no ReDoS, no operator injection.
-    // Matches only the file name (the one column the UI searches against) so
-    // every result is explainable by what's on screen.
     if (search) {
       query["uploadMetadata.originalFileName"] = new RegExp(escapeRegex(search), "i");
     }

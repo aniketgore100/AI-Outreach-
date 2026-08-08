@@ -4,18 +4,41 @@ import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronLeft, ChevronRight, CircleAlert, RotateCw, Search, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
+  RotateCw,
+  Search,
+  Users,
+} from "lucide-react";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { LeadDetailDialog } from "@/components/lead-lists/lead-detail-dialog";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { getAvatarColors, getInitials } from "@/lib/avatar";
+import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { clearSelectedLead, fetchLead, fetchLeadList, fetchLeads } from "@/store/slices/lead-list.slice";
+import {
+  clearSelectedLead,
+  fetchLead,
+  fetchLeadList,
+  fetchLeads,
+} from "@/store/slices/lead-list.slice";
 
 const PAGE_SIZE = 10;
 type LeadSortKey = "firstName" | "companyName" | "jobTitle" | "location";
@@ -25,9 +48,15 @@ export function LeadListDetailPage() {
   const params = useParams<{ id: string }>();
   const leadListId = params.id;
   const dispatch = useAppDispatch();
-  const { current, currentStatus, leads, leadsPagination, leadsStatus, leadsError, selectedLead } = useAppSelector(
-    (state) => state.leadLists
-  );
+  const {
+    current,
+    currentStatus,
+    leads,
+    leadsPagination,
+    leadsStatus,
+    leadsError,
+    selectedLead,
+  } = useAppSelector((state) => state.leadLists);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -55,7 +84,13 @@ export function LeadListDetailPage() {
       jobTitle: debouncedJobTitle || undefined,
       location: debouncedLocation || undefined,
     }),
-    [page, debouncedSearch, debouncedCompany, debouncedJobTitle, debouncedLocation]
+    [
+      page,
+      debouncedSearch,
+      debouncedCompany,
+      debouncedJobTitle,
+      debouncedLocation,
+    ],
   );
 
   useEffect(() => {
@@ -72,8 +107,18 @@ export function LeadListDetailPage() {
     return [...leads].sort((a, b) => {
       const result =
         sortKey === "firstName"
-          ? `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
-          : (a[sortKey] || "").localeCompare(b[sortKey] || "");
+          ? `${a.firstName} ${a.lastName}`.localeCompare(
+              `${b.firstName} ${b.lastName}`,
+              undefined,
+              {
+                numeric: true,
+                sensitivity: "base",
+              },
+            )
+          : (a[sortKey] || "").localeCompare(b[sortKey] || "", undefined, {
+              numeric: true,
+              sensitivity: "base",
+            });
       return sortDirection === "asc" ? result : -result;
     });
   }, [leads, sortKey, sortDirection]);
@@ -87,15 +132,21 @@ export function LeadListDetailPage() {
     }
   };
 
-  const handleFilterChange = (setter: (value: string) => void) => (event: ChangeEvent<HTMLInputElement>) => {
-    setter(event.target.value);
-    setPage(1);
-  };
+  const handleFilterChange =
+    (setter: (value: string) => void) =>
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setter(event.target.value);
+      setPage(1);
+    };
 
   const handleRetry = () => void dispatch(fetchLeads({ leadListId, query }));
 
-  const skippedCount = current ? current.skippedDuplicateCount + current.skippedMissingEmailCount : 0;
-  const hasActiveFilters = Boolean(search || companyFilter || jobTitleFilter || locationFilter);
+  const skippedCount = current
+    ? current.skippedDuplicateCount + current.skippedMissingEmailCount
+    : 0;
+  const hasActiveFilters = Boolean(
+    search || companyFilter || jobTitleFilter || locationFilter,
+  );
 
   return (
     <div className="space-y-5">
@@ -121,17 +172,21 @@ export function LeadListDetailPage() {
           </div>
         ) : (
           <>
-            <h1 className="text-h1 text-foreground">{current?.name ?? "Lead list"}</h1>
+            <h1 className="text-h1 text-foreground">
+              {current?.name ?? "Lead list"}
+            </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {(current?.leadCount ?? 0).toLocaleString()} leads
-              {skippedCount > 0 ? ` · ${skippedCount.toLocaleString()} rows skipped during import` : ""}
+              {skippedCount > 0
+                ? ` · ${skippedCount.toLocaleString()} rows skipped during import`
+                : ""}
             </p>
           </>
         )}
       </motion.div>
 
       <motion.div
-        className="overflow-hidden rounded-md border border-border bg-card shadow-sm"
+        className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut", delay: 0.04 }}
@@ -172,7 +227,12 @@ export function LeadListDetailPage() {
               <CircleAlert className="h-3.5 w-3.5 shrink-0" />
               {leadsError ?? "Could not load leads."}
             </span>
-            <Button type="button" variant="secondary" size="sm" onClick={handleRetry}>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleRetry}
+            >
               <RotateCw className="h-3.5 w-3.5" />
               Retry
             </Button>
@@ -189,7 +249,11 @@ export function LeadListDetailPage() {
           <div className="p-5">
             <EmptyState
               icon={Users}
-              title={hasActiveFilters ? "No leads match your filters" : "No leads in this list"}
+              title={
+                hasActiveFilters
+                  ? "No leads match your filters"
+                  : "No leads in this list"
+              }
               description={
                 hasActiveFilters
                   ? "Try a different name, email, company, job title, or location."
@@ -234,17 +298,45 @@ export function LeadListDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedLeads.map((lead) => (
-                  <TableRow key={lead.id} clickable onClick={() => setSelectedLeadId(lead.id)}>
-                    <TableCell className="font-medium">
-                      {[lead.firstName, lead.lastName].filter(Boolean).join(" ") || "—"}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{lead.email || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{lead.companyName || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{lead.jobTitle || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{lead.location || "—"}</TableCell>
-                  </TableRow>
-                ))}
+                {sortedLeads.map((lead) => {
+                  const avatarColors = getAvatarColors(lead.id);
+                  return (
+                    <TableRow
+                      key={lead.id}
+                      clickable
+                      onClick={() => setSelectedLeadId(lead.id)}
+                    >
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="h-7 w-7">
+                            <AvatarFallback
+                              className={cn(avatarColors.bg, avatarColors.text)}
+                            >
+                              {getInitials(lead.firstName, lead.lastName)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="truncate">
+                            {[lead.firstName, lead.lastName]
+                              .filter(Boolean)
+                              .join(" ") || "—"}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {lead.email || "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {lead.companyName || "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {lead.jobTitle || "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {lead.location || "—"}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
 
