@@ -1,0 +1,244 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  /* Base surfaces */
+  --background: #ffffff;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+
+  /* Neutral scale */
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+
+  /* Accent (single accent color — swap these two if the product gets a brand color) */
+  --primary: #4f46e5;
+  --primary-foreground: #ffffff;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+
+  --accent: #eef2ff;
+  --accent-foreground: #4338ca;
+
+  /* Semantic status colors — status/meaning only, never primary actions */
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --info: #0284c7;
+  --info-foreground: #ffffff;
+
+  --ring: #4f46e5;
+
+  /* Radius */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 12px -2px rgb(0 0 0 / 0.12);
+
+  /* Marketing-surface tokens — scoped to landing/hero-style pages (e.g. register).
+     Product screens should keep using the flat tokens above. */
+  --gradient-primary: linear-gradient(135deg, #4f46e5, #818cf8);
+  --glow-primary: rgb(79 70 229 / 0.16);
+  --surface: rgb(255 255 255 / 0.72);
+  --surface-elevated: rgb(255 255 255 / 0.9);
+}
+
+.dark {
+  --background: #0a0a0b;
+  --foreground: #f4f4f5;
+  --card: #131316;
+  --card-foreground: #f4f4f5;
+  --popover: #131316;
+  --popover-foreground: #f4f4f5;
+
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1aa;
+  --border: #27272a;
+  --input: #27272a;
+
+  --primary: #818cf8;
+  --primary-foreground: #0a0a0b;
+
+  --secondary: #1c1c1f;
+  --secondary-foreground: #f4f4f5;
+
+  --accent: #1e1b4b;
+  --accent-foreground: #a5b4fc;
+
+  --destructive: #f87171;
+  --destructive-foreground: #0a0a0b;
+  --success: #4ade80;
+  --success-foreground: #0a0a0b;
+  --warning: #fbbf24;
+  --warning-foreground: #0a0a0b;
+  --info: #38bdf8;
+  --info-foreground: #0a0a0b;
+
+  --ring: #818cf8;
+
+  /* Shadows read heavier on dark backgrounds even at the same alpha, so darken/soften slightly */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.24);
+  --shadow-md: 0 4px 16px -2px rgb(0 0 0 / 0.4);
+
+  --gradient-primary: linear-gradient(135deg, #818cf8, #6366f1);
+  --glow-primary: rgb(129 140 248 / 0.18);
+  --surface: rgb(19 19 22 / 0.6);
+  --surface-elevated: rgb(28 28 31 / 0.75);
+}
+
+/* Map the raw variables above into Tailwind v4's theme so bg-background,
+   text-foreground, rounded-md, shadow-sm, font-sans, etc. all work as utilities. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-ring: var(--ring);
+
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Type scale — see references/design-tokens.md for when to use each */
+  --text-display: 2rem;
+  --text-display--line-height: 2.5rem;
+  --text-display--font-weight: 600;
+
+  --text-h1: 1.5rem;
+  --text-h1--line-height: 2rem;
+  --text-h1--font-weight: 600;
+
+  --text-h2: 1.125rem;
+  --text-h2--line-height: 1.75rem;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 0.9375rem;
+  --text-h3--line-height: 1.375rem;
+  --text-h3--font-weight: 600;
+
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+
+  --text-small: 0.8125rem;
+  --text-small--line-height: 1.125rem;
+
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1rem;
+  --text-caption--font-weight: 500;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+button:not(:disabled),
+a[href],
+[role="button"],
+summary {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* Marketing-surface utilities — for hero/landing-style pages only. */
+.bg-hero-glow {
+  background-image: radial-gradient(circle at 12% 8%, var(--glow-primary), transparent 45%),
+    radial-gradient(circle at 88% 92%, var(--glow-primary), transparent 40%);
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(to right, var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 90%);
+}
+
+.text-gradient {
+  background-image: var(--gradient-primary);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.panel-glass {
+  background-color: var(--surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+}
+
+/* Marquee — fades the strip's edges and scrolls a doubled track by exactly
+   -50% so the loop is seamless (both halves render identical content). */
+.marquee-fade {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 26s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
