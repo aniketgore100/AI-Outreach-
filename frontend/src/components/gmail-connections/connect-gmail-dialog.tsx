@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { CircleAlert, ExternalLink, Loader2 } from "lucide-react";
+import { CircleAlert, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearConnectError, startGoogleOAuth } from "@/store/slices/gmail-connection.slice";
 
@@ -71,11 +72,7 @@ export function ConnectGmailDialog({ open, onOpenChange }: ConnectGmailDialogPro
             Cancel
           </Button>
           <Button type="button" disabled={connectStatus === "loading"} onClick={handleConfirm}>
-            {connectStatus === "loading" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ExternalLink className="h-4 w-4" />
-            )}
+            {connectStatus === "loading" ? <Spinner /> : <ExternalLink className="h-4 w-4" />}
             Continue with Google
           </Button>
         </DialogFooter>

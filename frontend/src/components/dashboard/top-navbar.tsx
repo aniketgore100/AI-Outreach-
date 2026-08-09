@@ -23,13 +23,16 @@ function getInitials(
   return source.slice(0, 2).toUpperCase();
 }
 
-const PAGE_TITLES: Record<string, string> = {
+// Mirrors the top-level entries in Sidebar's NAV_ITEMS — every primary
+// section gets its name shown here as a persistent breadcrumb, regardless
+// of whether the page also renders its own in-content title.
+const SECTION_TITLES: Record<string, string> = {
   "/dashboard/campaigns": "Campaigns",
+  "/dashboard/inbox": "Inbox",
   "/dashboard/ai-persona": "AI Persona",
   "/dashboard/templates": "Email Templates",
-  "/dashboard": "Lead Lists",
+  "/dashboard": "Lead List",
   "/dashboard/connections": "Connections",
-  "/dashboard/inbox": "Inbox",
 };
 
 export function TopNavbar() {
@@ -43,15 +46,11 @@ export function TopNavbar() {
     router.push("/login");
   };
 
-  const pageTitle = PAGE_TITLES[pathname];
+  const sectionTitle = SECTION_TITLES[pathname];
 
   return (
     <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center justify-between border-b border-border/70 bg-background px-3 sm:px-4">
-      {pageTitle ? (
-        <h2 className="text-sm font-medium text-foreground">{pageTitle}</h2>
-      ) : (
-        <span />
-      )}
+      {sectionTitle ? <h2 className="text-sm font-medium text-foreground">{sectionTitle}</h2> : <span />}
 
       <DropdownMenu>
         <DropdownMenuTrigger

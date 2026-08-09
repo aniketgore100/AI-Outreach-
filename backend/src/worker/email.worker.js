@@ -21,6 +21,9 @@ class EmailWorker {
     emailJobRepository,
     gmailConnectionRepository,
     sendGmailMessage,
+    recordOutboundMessage,
+    onCampaignEmailSent,
+    onCampaignSendFailed,
     rateLimiter,
     concurrency,
     visibilityTimeoutSeconds,
@@ -30,6 +33,11 @@ class EmailWorker {
     this.emailJobRepository = emailJobRepository;
     this.gmailConnectionRepository = gmailConnectionRepository;
     this.sendGmailMessage = sendGmailMessage;
+    this.recordOutboundMessage = recordOutboundMessage;
+    // Optional — only set for campaign-linked jobs. Defaulted to a no-op so
+    // ad-hoc sends (and any caller that doesn't wire these) are unaffected.
+    this.onCampaignEmailSent = onCampaignEmailSent ?? (async () => {});
+    this.onCampaignSendFailed = onCampaignSendFailed ?? (async () => {});
     this.rateLimiter = rateLimiter;
     this.concurrency = concurrency;
     this.visibilityTimeoutSeconds = visibilityTimeoutSeconds;
@@ -125,16 +133,74 @@ class EmailWorker {
         to: job.to,
         from: connection.email,
         subject: job.subject,
-        text: job.body,
+        // job.body is rendered from Template.bodyHtml (see
+        // campaign-scheduler.service.js / campaign-enrollment.service.js) —
+        // it's HTML, not plain text. Passing it as `html` lets
+        // gmail.service.js build a proper multipart/alternative message
+        // (with an auto-derived plain-text fallback) instead of the literal
+        // "<p>...</p>" markup showing up in the recipient's inbox.
+        html: job.body,
+        // Only set on follow-up/reply campaign jobs — threads the send into
+        // the lead's existing Gmail conversation instead of starting a new one.
+        threadId: job.gmailThreadId ?? undefined,
+        inReplyTo: job.inReplyTo ?? undefined,
+        references: job.references ?? undefined,
       });
 
       await this.emailJobRepository.markSent(job._id, { sqsMessageId: result?.id });
       await this.emailQueueService.deleteMessage(message.ReceiptHandle);
+
+      // Best-effort: the send already succeeded, so a failure to persist it
+      // for the inbox must never fail the job (that would trigger a retry
+      // and send a duplicate email to the lead).
+      let conversation = null;
+      if (result?.id && result?.threadId) {
+        try {
+          conversation = await this.recordOutboundMessage({
+            userId: job.userId,
+            gmailConnectionId: job.gmailConnectionId,
+            leadId: job.leadId,
+            leadListId: job.leadListId,
+            campaignId: job.campaignId,
+            campaignEnrollmentId: job.campaignEnrollmentId,
+            fromEmail: connection.email,
+            toEmail: job.to,
+            subject: job.subject,
+            // job.body is HTML (see the sendGmailMessage call above) — record
+            // it as bodyHtml so the Inbox UI renders it, not raw markup.
+            // conversationService derives the plain-text preview from it.
+            bodyHtml: job.body,
+            gmailMessageId: result.id,
+            gmailThreadId: result.threadId,
+          });
+        } catch (recordErr) {
+          console.error(`Failed to record sent message for inbox (job ${job._id}):`, recordErr.message);
+        }
+      }
+
+      // Same best-effort philosophy — advancing campaign sequence state must
+      // never re-fail an email that already sent. The scheduler's stale-claim
+      // reconciliation is the safety net if this doesn't land.
+      if (job.campaignEnrollmentId) {
+        try {
+          await this.onCampaignEmailSent(job, conversation);
+        } catch (campaignErr) {
+          console.error(`Failed to advance campaign enrollment for job ${job._id}:`, campaignErr.message);
+        }
+      }
     } catch (err) {
       if (isPermanentError(err)) {
         console.error(`Email job ${job._id} failed permanently (attempt ${receiveCount}): ${err.message}`);
         await this.emailJobRepository.markDead(job._id, err.message);
-   
+
+        if (job.campaignEnrollmentId) {
+          try {
+            await this.onCampaignSendFailed(job, err.message);
+          } catch (campaignErr) {
+            console.error(`Failed to mark campaign enrollment failed for job ${job._id}:`, campaignErr.message);
+          }
+        }
+
         await this.emailQueueService.deleteMessage(message.ReceiptHandle);
         return;
       }

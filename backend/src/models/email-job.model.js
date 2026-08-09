@@ -41,10 +41,44 @@ const emailJobSchema = new mongoose.Schema(
       required: true 
     },
 
-    idempotencyKey: { 
-      type: String, 
-      required: true, 
-      unique: true 
+    idempotencyKey: {
+      type: String,
+      required: true,
+      unique: true
+    },
+    // Set only for scheduler-driven campaign sends; null for ad-hoc sends
+    // from email.service.js. Fully optional/additive — EmailWorker only
+    // reads these when present, so existing ad-hoc jobs are unaffected.
+    campaignId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Campaign",
+      default: null,
+      index: true,
+    },
+    campaignEnrollmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "CampaignEnrollment",
+      default: null,
+      index: true,
+    },
+    sequenceStep: {
+      type: String,
+      default: null,
+    },
+    // Threading fields — set for follow-up/reply sends so EmailWorker sends
+    // them as a reply within the lead's existing Gmail thread instead of a
+    // new one. Left null for initial-outreach and ad-hoc jobs.
+    gmailThreadId: {
+      type: String,
+      default: null,
+    },
+    inReplyTo: {
+      type: String,
+      default: null,
+    },
+    references: {
+      type: String,
+      default: null,
     },
     status: {
       type: String,

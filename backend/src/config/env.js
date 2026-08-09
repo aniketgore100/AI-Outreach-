@@ -50,6 +50,30 @@ const envSchema = z.object({
   WORKER_CONCURRENCY: z.coerce.number().int().positive().max(50).default(5),
   WORKER_RATE_LIMIT_PER_SECOND: z.coerce.number().int().positive().default(5),
   WORKER_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
+
+  // Gmail reply sync — how often the sync worker polls each connected
+  // account's history.list delta for new inbound mail on tracked threads.
+  GMAIL_SYNC_INTERVAL_MS: z.coerce.number().int().positive().default(60000),
+  GMAIL_SYNC_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
+
+  // Campaign scheduler — a separate poll loop from both the email worker and
+  // the Gmail sync worker (see worker/campaign-scheduler.worker.js) so a
+  // scheduling bug can never take down sending or reply sync.
+  SCHEDULER_INTERVAL_MS: z.coerce.number().int().positive().default(30000),
+  // Max enrollments claimed per active campaign per poll cycle — keeps a
+  // campaign's whole lead list from being blasted the instant its window opens.
+  SCHEDULER_ENROLLMENT_BATCH_SIZE: z.coerce.number().int().positive().max(1000).default(50),
+  // How long an enrollment can sit in a *_queued state before the next cycle
+  // treats it as possibly stuck and reconciles it against its EmailJob.
+  SCHEDULER_STALE_CLAIM_MS: z.coerce.number().int().positive().default(600000),
+  SCHEDULER_SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().positive().default(15000),
+
+  // TESTING ONLY — remove this var and its one usage in
+  // campaign-enrollment.service.js once done testing. Overrides what one
+  // unit of "follow-up delay days" actually means in milliseconds, so you
+  // can set it to 60000 to make delayDays=1 mean "1 minute later" instead
+  // of waiting a real day. Defaults to a real day (no behavior change).
+  SCHEDULER_FOLLOWUP_DELAY_UNIT_MS: z.coerce.number().int().positive().default(86400000),
 });
 
 function loadEnv() {

@@ -38,8 +38,8 @@
 
   --ring: #4f46e5;
 
-  /* Sidebar — a distinct warm-neutral chrome surface, separate from --card */
-  --sidebar: #faf6ec;
+  /* Sidebar — chrome surface, separate from --card */
+  --sidebar: #ffffff;
 
   /* Radius */
   --radius-sm: 0.375rem; /* 6px */
@@ -262,6 +262,21 @@ button:disabled,
   word-break: break-word;
 }
 
+/* Raw email HTML (from Gmail, Outlook, etc.) frequently carries its own
+   inline font-size on p/div/span/font/td — left alone, that makes pasted
+   messages render "oversized" and inconsistent with the rest of the thread.
+   Force those back to the container's size; headings/code keep their own
+   deliberate sizes below since those selectors are untouched. */
+.email-content p,
+.email-content div,
+.email-content span,
+.email-content font,
+.email-content li,
+.email-content td {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
 .email-content > *:first-child {
   margin-top: 0;
 }
@@ -339,4 +354,35 @@ button:disabled,
   height: 0;
   color: var(--muted-foreground);
   pointer-events: none;
+}
+
+/* Shared loading-skeleton shimmer. A translucent sweep over the base
+   --muted fill, sized purely by whatever className the call site sets
+   (h-*, w-*, rounded-*) — no fixed dimensions here so it fits a single
+   text line or a full table/card equally well. */
+@keyframes shimmer-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: shimmer-sweep 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer::after {
+    animation: none;
+  }
 }

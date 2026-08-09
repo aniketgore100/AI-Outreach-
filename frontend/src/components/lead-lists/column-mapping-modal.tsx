@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CircleAlert, Loader2 } from "lucide-react";
+import { CircleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { STANDARD_FIELD_LABELS, guessColumnMapping } from "@/lib/lead-field-mapping";
@@ -55,27 +56,35 @@ export function ColumnMappingModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="max-h-[85vh]">
-        <DialogHeader>
-          <DialogTitle>Map your columns</DialogTitle>
-          <DialogDescription>
+      <DialogContent size="lg" className="max-h-[78vh]">
+        <DialogHeader className="gap-0.5 px-4 py-4 md:px-5 md:py-4">
+          <DialogTitle className="text-base font-medium">Map your columns</DialogTitle>
+          <DialogDescription className="text-small leading-6">
             Match each column from <span className="font-medium text-foreground">{parsed.uploadMetadata.originalFileName}</span> to
             a lead field. {parsed.uploadMetadata.totalRows} row{parsed.uploadMetadata.totalRows === 1 ? "" : "s"} found.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto px-4 py-4 md:px-5 md:py-4">
           <div className="space-y-1.5">
-            <Label htmlFor="lead-list-name">Lead list name</Label>
-            <Input id="lead-list-name" value={name} onChange={(event) => setName(event.target.value)} maxLength={150} />
+            <Label htmlFor="lead-list-name" className="text-small font-medium">
+              Lead list name
+            </Label>
+            <Input
+              id="lead-list-name"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              maxLength={150}
+              className="h-9"
+            />
           </div>
 
-          <Table className="mt-5">
+          <Table className="mt-4">
             <TableHeader>
               <TableRow>
                 <TableHead>Your column</TableHead>
                 <TableHead>Sample value</TableHead>
-                <TableHead className="w-48">Maps to</TableHead>
+                <TableHead className="w-44">Maps to</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -85,17 +94,17 @@ export function ColumnMappingModal({
                 ];
 
                 return (
-                  <TableRow key={entry.sourceColumn}>
+                  <TableRow key={entry.sourceColumn} className="h-14">
                     <TableCell className="font-medium">{entry.sourceColumn}</TableCell>
                     <TableCell className="max-w-48 truncate text-muted-foreground" title={sample}>
                       {sample || "—"}
                     </TableCell>
                     <TableCell>
-                      <Select
-                        value={entry.targetField}
-                        onValueChange={(value) => updateTarget(entry.sourceColumn, value as TargetField)}
-                      >
-                        <SelectTrigger>
+                        <Select
+                          value={entry.targetField}
+                          onValueChange={(value) => updateTarget(entry.sourceColumn, value as TargetField)}
+                        >
+                        <SelectTrigger className="h-9">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -130,18 +139,14 @@ export function ColumnMappingModal({
           ) : null}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 px-4 py-3 md:px-5 md:py-4">
           <Button type="button" variant="secondary" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            type="button"
-            disabled={!canConfirm}
-            onClick={() => onConfirm({ name: name.trim(), mapping })}
-          >
+          <Button type="button" disabled={!canConfirm} onClick={() => onConfirm({ name: name.trim(), mapping })}>
             {isSubmitting ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Spinner />
                 Importing
               </>
             ) : (

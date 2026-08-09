@@ -1,12 +1,13 @@
 "use client";
 
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, type LucideIcon } from "lucide-react";
 
 import { TableHead } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 interface SortableTableHeadProps<TKey extends string> {
   label: string;
+  icon?: LucideIcon;
   sortKey: TKey;
   activeKey: TKey;
   direction: "asc" | "desc";
@@ -16,6 +17,7 @@ interface SortableTableHeadProps<TKey extends string> {
 
 export function SortableTableHead<TKey extends string>({
   label,
+  icon: Icon,
   sortKey,
   activeKey,
   direction,
@@ -30,10 +32,11 @@ export function SortableTableHead<TKey extends string>({
         type="button"
         onClick={() => onSortChange(sortKey)}
         className={cn(
-          "inline-flex items-center gap-1 transition-colors hover:text-foreground",
+          "inline-flex items-center gap-1.5 transition-colors hover:text-foreground",
           isActive && "text-foreground"
         )}
       >
+        {Icon ? <Icon className="h-3 w-3 shrink-0" /> : null}
         {label}
         {isActive ? (
           direction === "asc" ? (
@@ -42,7 +45,7 @@ export function SortableTableHead<TKey extends string>({
             <ArrowDown className="h-3 w-3" />
           )
         ) : (
-          <ArrowUpDown className="h-3 w-3 opacity-40" />
+          <ChevronDown className="h-3 w-3 opacity-50" />
         )}
       </button>
     </TableHead>

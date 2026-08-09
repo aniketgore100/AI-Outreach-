@@ -15,6 +15,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -46,9 +48,9 @@ import { DeleteTemplateDialog } from "@/components/templates/delete-template-dia
 import { RenameTemplateDialog } from "@/components/templates/rename-template-dialog";
 import { TemplateStatusBadge } from "@/components/templates/template-status-badge";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { getAvatarColors, getNameInitials } from "@/lib/avatar";
+import { useMinLoadingDuration } from "@/hooks/use-min-loading-duration";
+import { getNameInitials } from "@/lib/avatar";
 import { formatDate } from "@/lib/format";
-import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   deleteTemplate,
@@ -105,77 +107,91 @@ export function TemplatesListPage() {
 
     if (duplicateTemplate.fulfilled.match(result)) {
       router.push(`/dashboard/templates/${result.payload.id}`);
+    } else {
+      toast.error(result.payload ?? "Could not duplicate this template");
     }
   };
 
   const handleDelete = async () => {
     if (!pendingDelete) return;
     setIsDeleting(true);
-    await dispatch(deleteTemplate(pendingDelete.id));
+    const result = await dispatch(deleteTemplate(pendingDelete.id));
     setIsDeleting(false);
     setPendingDelete(null);
+
+    if (deleteTemplate.fulfilled.match(result)) {
+      toast.success(`${pendingDelete.name} deleted`);
+    } else {
+      toast.error(result.payload ?? "Could not delete this template");
+    }
   };
 
   const handleRename = async (name: string) => {
     if (!pendingRename) return;
     setIsRenaming(true);
-    await dispatch(updateTemplate({ id: pendingRename.id, payload: { name } }));
+    const result = await dispatch(updateTemplate({ id: pendingRename.id, payload: { name } }));
     setIsRenaming(false);
     setPendingRename(null);
+
+    if (updateTemplate.fulfilled.match(result)) {
+      toast.success("Template renamed");
+    } else {
+      toast.error(result.payload ?? "Could not rename this template");
+    }
   };
 
   const hasActiveFilters = Boolean(search) || statusFilter !== "all";
-  const isInitialLoad = status === "loading" && items.length === 0;
+  const isInitialLoad = useMinLoadingDuration(status === "loading" && items.length === 0);
 
   return (
-    <div className="w-full space-y-6">
+    <div className="w-full space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:max-w-2xl">
+          <div className="relative w-full min-w-0 flex-1 sm:max-w-[18rem]">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Search templates"
+              className="h-8 w-full pl-8 text-sm"
+            />
+          </div>
+
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value as TemplateStatus | "all");
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-full sm:w-32 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <Button type="button" className="shrink-0 gap-2 sm:self-auto" asChild>
+          <Link href="/dashboard/templates/new">
+            <Plus className="h-4 w-4" />
+            New Template
+          </Link>
+        </Button>
+      </div>
+
       <motion.div
-        className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm"
+        className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut", delay: 0.03 }}
       >
-        <div className="flex flex-col gap-3 border-b border-border px-4 py-3 md:flex-row md:items-center md:justify-between">
-          <div className="flex w-full flex-wrap items-center gap-2 md:max-w-2xl">
-            <div className="relative w-full min-w-0 flex-1 md:max-w-[18rem]">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => {
-                  setSearch(event.target.value);
-                  setPage(1);
-                }}
-                placeholder="Search templates"
-                className="h-8 w-full pl-8 text-sm"
-              />
-            </div>
-
-            <Select
-              value={statusFilter}
-              onValueChange={(value) => {
-                setStatusFilter(value as TemplateStatus | "all");
-                setPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-full md:w-32 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button type="button" className="shrink-0 gap-2 md:self-end" asChild>
-            <Link href="/dashboard/templates/new">
-              <Plus className="h-4 w-4" />
-              New Template
-            </Link>
-          </Button>
-        </div>
-
         {isInitialLoad ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 5 }).map((_, index) => (
@@ -212,54 +228,42 @@ export function TemplatesListPage() {
           <>
             <Table containerClassName="border-0 rounded-none">
               <TableHeader>
-                <TableRow className="h-10 bg-muted/50">
+                <TableRow className="h-9 divide-x divide-border/70 bg-muted/50">
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Updated</TableHead>
-                  <TableHead className="sticky right-0 z-10 w-12 bg-muted pr-4 text-right" />
+                  <TableHead className="sticky right-0 z-10 w-10 bg-muted pr-3 text-right" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {items.map((template) => {
-                  const avatarColors = getAvatarColors(template.id);
                   return (
-                    <TableRow
-                      key={template.id}
-                      clickable
-                      className="group h-12"
-                      onClick={() =>
-                        router.push(`/dashboard/templates/${template.id}`)
-                      }
-                    >
-                      <TableCell>
+                  <TableRow
+                    key={template.id}
+                    clickable
+                    className="group h-9 divide-x divide-border/70"
+                    onClick={() => router.push(`/dashboard/templates/${template.id}`)}
+                  >
+                      <TableCell className="text-[11px]">
                         <div className="flex items-center gap-2.5">
-                          <Avatar className="h-7 w-7">
-                            <AvatarFallback
-                              className={cn(avatarColors.bg, avatarColors.text)}
-                            >
+                          <Avatar className="h-6 w-6">
+                            <AvatarFallback className="bg-zinc-100 text-zinc-600 ring-1 ring-inset ring-zinc-200/80 dark:bg-zinc-800 dark:text-zinc-300 dark:ring-zinc-700/70">
                               {getNameInitials(template.name)}
                             </AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0">
-                            <span className="block max-w-96 truncate font-medium text-foreground">
-                              {template.name}
-                            </span>
-                            {template.subject ? (
-                              <span className="mt-0.5 block max-w-96 truncate text-small text-muted-foreground">
-                                {template.subject}
-                              </span>
-                            ) : null}
-                          </div>
+                          <span className="block max-w-45 truncate font-medium text-foreground">
+                            {template.name}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <TemplateStatusBadge status={template.status} />
+                        <TemplateStatusBadge status={template.status} className="text-[11px]" />
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
+                      <TableCell className="text-[11px] text-muted-foreground">
                         {formatDate(template.updatedAt)}
                       </TableCell>
                       <TableCell
-                        className="sticky right-0 z-10 w-12 bg-card pr-4 text-right transition-colors group-hover:bg-accent"
+                        className="sticky right-0 z-10 w-10 bg-card pr-3 text-right transition-colors group-hover:bg-accent/60"
                         onClick={(event) => event.stopPropagation()}
                         onPointerDown={(event) => event.stopPropagation()}
                       >
@@ -269,9 +273,9 @@ export function TemplatesListPage() {
                               type="button"
                               aria-label={`Actions for ${template.name}`}
                               disabled={duplicatingId === template.id}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border/80 bg-background text-muted-foreground shadow-sm transition-all duration-150 hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
+                              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border/70 bg-background text-muted-foreground shadow-sm transition-all duration-150 hover:border-border hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
                             >
-                              <MoreHorizontal className="h-4 w-4" />
+                              {duplicatingId === template.id ? <Spinner /> : <MoreHorizontal className="h-4 w-4" />}
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent className="z-80 min-w-44">

@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion } from "framer-motion";
-import { CircleAlert, Loader2, Mail } from "lucide-react";
+import { motion } from "framer-motion";
+import { Mail } from "lucide-react";
+import { toast } from "sonner";
 
 import { EmptyState } from "@/components/ui/empty-state";
+import { Spinner } from "@/components/ui/spinner";
 import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -16,7 +18,6 @@ import type { GmailConnection } from "@/types/gmail-connection.types";
 export function GmailConnectionsList({ connections }: { connections: GmailConnection[] }) {
   const dispatch = useAppDispatch();
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [reconnectError, setReconnectError] = useState<string | null>(null);
 
   if (connections.length === 0) {
     return (
@@ -32,13 +33,18 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
 
   const handleDisconnect = async (id: string) => {
     setPendingId(id);
-    await dispatch(disconnectGmailAccount(id));
+    const result = await dispatch(disconnectGmailAccount(id));
     setPendingId(null);
+
+    if (disconnectGmailAccount.fulfilled.match(result)) {
+      toast.success("Gmail account disconnected");
+    } else {
+      toast.error(result.payload ?? "Could not disconnect this account");
+    }
   };
 
   const handleReconnect = async (email: string, id: string) => {
     setPendingId(id);
-    setReconnectError(null);
 
     const result = await dispatch(startGoogleOAuth(email));
 
@@ -47,10 +53,7 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
       return;
     }
 
-    if (!startGoogleOAuth.fulfilled.match(result)) {
-      setReconnectError(result.payload ?? "Could not reconnect this account");
-    }
-
+    toast.error(result.payload ?? "Could not reconnect this account");
     setPendingId(null);
   };
 
@@ -64,22 +67,6 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
 
   return (
     <div>
-      <AnimatePresence initial={false}>
-        {reconnectError ? (
-          <motion.p
-            key="reconnect-error"
-            className="flex items-center gap-1.5 border-b border-border/70 bg-destructive/10 px-4 py-2 text-small text-destructive"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-          >
-            <CircleAlert className="h-3.5 w-3.5 shrink-0" />
-            {reconnectError}
-          </motion.p>
-        ) : null}
-      </AnimatePresence>
-
       <ul className="divide-y divide-border">
         {connections.map((connection) => (
           <motion.li
@@ -105,7 +92,7 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
             </div>
 
             <div className="flex shrink-0 items-center gap-2.5">
-              {pendingId === connection.id ? <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" /> : null}
+              {pendingId === connection.id ? <Spinner size="sm" className="text-muted-foreground" /> : null}
               <span
                 className={cn(
                   "text-small font-medium",

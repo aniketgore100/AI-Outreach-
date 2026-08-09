@@ -12,6 +12,10 @@ const GOOGLE_OAUTH_SCOPE = [
   "email",
   "profile",
   "https://www.googleapis.com/auth/gmail.send",
+  // Needed to detect and read replies to outreach threads. Accounts
+  // connected before this scope was added only ever granted gmail.send and
+  // must reconnect — their stored tokens simply can't read mail.
+  "https://www.googleapis.com/auth/gmail.readonly",
 ];
 
 function assertGoogleOAuthConfig() {

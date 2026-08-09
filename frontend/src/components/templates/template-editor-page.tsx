@@ -5,17 +5,19 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { Editor } from "@tiptap/react";
 import { motion } from "framer-motion";
-import { ArrowLeft, CircleAlert, Loader2, Save, Send } from "lucide-react";
+import { ArrowLeft, CircleAlert, Save, Send } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { TemplatePreview } from "@/components/templates/template-preview";
 import { TemplateRichTextEditor } from "@/components/templates/template-rich-text-editor";
 import { VariablePicker } from "@/components/templates/variable-picker";
 import { isValidEmail } from "@/lib/email";
 import { findUnknownVariables } from "@/lib/template-render";
+import { useMinLoadingDuration } from "@/hooks/use-min-loading-duration";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchGmailConnections } from "@/store/slices/gmail-connection.slice";
 import {
@@ -114,7 +116,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
     [subject, bodyHtml]
   );
 
-  const isLoadingExisting = mode === "edit" && currentStatus === "loading" && !current;
+  const isLoadingExisting = useMinLoadingDuration(mode === "edit" && currentStatus === "loading" && !current);
 
   const isTestEmailValid = isValidEmail(testToEmail);
   const sendTestBlockedReason = !templateId
@@ -189,7 +191,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
     return (
       <div className="space-y-3">
         <Skeleton className="h-7 w-56" />
-        <Skeleton className="h-[72vh] w-full rounded-xl" />
+        <Skeleton className="h-[72vh] w-full rounded-lg" />
       </div>
     );
   }
@@ -227,7 +229,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
       ) : null}
 
       <motion.div
-        className="grid min-h-144 grid-cols-1 overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm lg:h-[calc(100vh-14rem)] lg:grid-cols-2"
+        className="grid min-h-144 grid-cols-1 overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm lg:h-[calc(100vh-14rem)] lg:grid-cols-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut" }}
@@ -275,7 +277,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
         </section>
       </motion.div>
 
-      <div className="flex flex-wrap items-center justify-end gap-2 rounded-xl border border-border/70 bg-card px-4 py-3 shadow-sm">
+      <div className="flex flex-wrap items-center justify-end gap-2 rounded-lg border border-border/70 bg-card px-4 py-3 shadow-sm">
         <Button
           type="button"
           variant="secondary"
@@ -298,7 +300,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
           title={sendTestBlockedReason ?? undefined}
           onClick={handleSendTest}
         >
-          {sendTestStatus === "loading" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {sendTestStatus === "loading" ? <Spinner /> : <Send className="h-4 w-4" />}
           Send Test
         </Button>
       </div>
@@ -321,7 +323,7 @@ function TemplateEditorPageContent({ mode, templateId }: { mode: EditorMode; tem
               value={saveDialogName}
               onChange={(event) => setSaveDialogName(event.target.value)}
               placeholder="Template name"
-              className="h-10 rounded-md border-transparent bg-muted/60 shadow-none ring-1 ring-transparent transition focus-visible:bg-background focus-visible:ring-ring"
+              className="h-10 rounded-md border-transparent bg-background/80 shadow-none ring-1 ring-transparent transition focus-visible:bg-background focus-visible:ring-ring"
             />
             <DialogFooter className="px-0 pb-0 pt-1">
               <Button type="button" variant="secondary" onClick={() => setSaveDialogOpen(false)}>

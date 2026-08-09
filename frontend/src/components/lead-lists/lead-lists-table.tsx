@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MoreHorizontal, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -40,16 +41,22 @@ export function LeadListsTable({ items, sortKey, sortDirection, onSortChange }: 
     if (!pendingDelete) return;
 
     setIsDeleting(true);
-    await dispatch(deleteLeadList(pendingDelete.id));
+    const result = await dispatch(deleteLeadList(pendingDelete.id));
     setIsDeleting(false);
     setPendingDelete(null);
+
+    if (deleteLeadList.fulfilled.match(result)) {
+      toast.success(`${pendingDelete.uploadMetadata.originalFileName} deleted`);
+    } else {
+      toast.error(result.payload ?? "Could not delete this lead list");
+    }
   };
 
   return (
     <>
       <Table containerClassName="border-0 rounded-none">
         <TableHeader>
-          <TableRow className="h-9 bg-muted/50">
+          <TableRow className="h-9 divide-x divide-border/70 bg-muted/50">
             <SortableTableHead
               label="File"
               sortKey="fileName"
@@ -79,7 +86,7 @@ export function LeadListsTable({ items, sortKey, sortDirection, onSortChange }: 
             <TableRow
               key={leadList.id}
               clickable
-              className="group h-10"
+              className="group h-10 divide-x divide-border/70"
               onClick={() => router.push(`/dashboard/lead-lists/${leadList.id}`)}
             >
               <TableCell>

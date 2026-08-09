@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Spinner } from "@/components/ui/spinner";
 
 interface DeleteTemplateDialogProps {
   open: boolean;
@@ -42,7 +43,7 @@ export function DeleteTemplateDialog({
             Cancel
           </Button>
           <Button type="button" variant="destructive" onClick={onConfirm} disabled={isDeleting}>
-            {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+            {isDeleting ? <Spinner /> : <Trash2 className="h-4 w-4" />}
             Delete
           </Button>
         </DialogFooter>

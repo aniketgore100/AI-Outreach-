@@ -20,6 +20,11 @@ interface TemplateRichTextEditorProps {
   onFocus?: () => void;
   placeholder?: string;
   toolbarEndActions?: ReactNode;
+  showToolbar?: boolean;
+  editorClassName?: string;
+  /** Smaller toolbar buttons/icons/padding — for tight contexts like an
+   * inline reply composer rather than the full template editor. */
+  compact?: boolean;
 }
 
 export function TemplateRichTextEditor({
@@ -29,6 +34,9 @@ export function TemplateRichTextEditor({
   onFocus,
   placeholder,
   toolbarEndActions,
+  showToolbar = true,
+  editorClassName,
+  compact = false,
 }: TemplateRichTextEditorProps) {
   const editor = useEditor({
     // Required for Next.js SSR — Tiptap otherwise warns/mismatches because
@@ -49,12 +57,12 @@ export function TemplateRichTextEditor({
     content,
     onUpdate: ({ editor: instance }) => onChange(instance.getHTML()),
     onFocus: () => onFocus?.(),
-    editorProps: {
-      attributes: {
-        class: "email-content min-h-[32rem] px-5 py-4 text-[15px] leading-7 focus:outline-none",
+      editorProps: {
+        attributes: {
+          class: `email-content min-h-[12rem] px-5 py-4 text-[15px] leading-7 focus:outline-none ${editorClassName ?? ""}`,
+        },
       },
-    },
-  });
+    });
 
   useEffect(() => {
     onEditorReady?.(editor ?? null);
@@ -63,9 +71,11 @@ export function TemplateRichTextEditor({
   }, [editor]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-card">
-      {editor ? <TemplateEditorToolbar editor={editor} endActions={toolbarEndActions} /> : null}
-      <div className="min-h-0 flex-1 overflow-y-auto">
+    <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-card">
+      {showToolbar && editor ? (
+        <TemplateEditorToolbar editor={editor} endActions={toolbarEndActions} compact={compact} />
+      ) : null}
+      <div className="min-h-0 w-full min-w-0 flex-1 overflow-y-auto">
         <EditorContent editor={editor} />
       </div>
     </div>

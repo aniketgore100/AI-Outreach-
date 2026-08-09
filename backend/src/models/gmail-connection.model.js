@@ -34,13 +34,23 @@ const gmailConnectionSchema = new mongoose.Schema(
       required: true, 
       select: false 
     },
-    connectedAt: { 
-      type: Date, 
-      default: Date.now 
+    connectedAt: {
+      type: Date,
+      default: Date.now
     },
-    disconnectedAt: { 
-      type: Date, 
-      default: null 
+    disconnectedAt: {
+      type: Date,
+      default: null
+    },
+    // Delta-sync cursor for the Gmail reply-sync worker (users.history.list).
+    // Null until the first sync pass bootstraps it via users.getProfile.
+    historyId: {
+      type: String,
+      default: null,
+    },
+    lastSyncedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true, collection: "gmail_connections" }

@@ -6,18 +6,25 @@ import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
+  Briefcase,
+  Building2,
   ChevronLeft,
   ChevronRight,
   CircleAlert,
+  Globe,
+  Mail,
+  MapPin,
   RotateCw,
   Search,
+  User,
   Users,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
+import { PageHeader } from "@/components/ui/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import {
@@ -30,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import { LeadDetailDialog } from "@/components/lead-lists/lead-detail-dialog";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { getAvatarColors, getInitials } from "@/lib/avatar";
+import { useMinLoadingDuration } from "@/hooks/use-min-loading-duration";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
@@ -41,7 +48,7 @@ import {
 } from "@/store/slices/lead-list.slice";
 
 const PAGE_SIZE = 10;
-type LeadSortKey = "firstName" | "companyName" | "jobTitle" | "location";
+type LeadSortKey = "firstName" | "lastName" | "email" | "companyName" | "jobTitle" | "location";
 type SortDirection = "asc" | "desc";
 
 export function LeadListDetailPage() {
@@ -70,6 +77,21 @@ export function LeadListDetailPage() {
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<LeadSortKey>("firstName");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+
+  const isHeaderLoading = useMinLoadingDuration(currentStatus === "loading" && !current);
+  const isLeadsLoading = useMinLoadingDuration(leadsStatus === "loading" && leads.length === 0);
+  const isSelectedLeadLoading = useMinLoadingDuration(Boolean(selectedLeadId) && !selectedLead);
+
+  // Row selection is page-scoped — reset it whenever the visible page of
+  // leads changes so a stale checkmark can't linger from a previous page.
+  // Done during render (React's "adjusting state" pattern) rather than in
+  // an effect, so it can't show a stale selection for a frame first.
+  const [prevLeads, setPrevLeads] = useState(leads);
+  if (leads !== prevLeads) {
+    setPrevLeads(leads);
+    setCheckedIds(new Set());
+  }
 
   useEffect(() => {
     void dispatch(fetchLeadList(leadListId));
@@ -105,20 +127,10 @@ export function LeadListDetailPage() {
 
   const sortedLeads = useMemo(() => {
     return [...leads].sort((a, b) => {
-      const result =
-        sortKey === "firstName"
-          ? `${a.firstName} ${a.lastName}`.localeCompare(
-              `${b.firstName} ${b.lastName}`,
-              undefined,
-              {
-                numeric: true,
-                sensitivity: "base",
-              },
-            )
-          : (a[sortKey] || "").localeCompare(b[sortKey] || "", undefined, {
-              numeric: true,
-              sensitivity: "base",
-            });
+      const result = (a[sortKey] || "").localeCompare(b[sortKey] || "", undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
       return sortDirection === "asc" ? result : -result;
     });
   }, [leads, sortKey, sortDirection]);
@@ -130,6 +142,22 @@ export function LeadListDetailPage() {
       setSortKey(key);
       setSortDirection("asc");
     }
+  };
+
+  const allOnPageChecked = sortedLeads.length > 0 && sortedLeads.every((lead) => checkedIds.has(lead.id));
+  const someOnPageChecked = !allOnPageChecked && sortedLeads.some((lead) => checkedIds.has(lead.id));
+
+  const toggleCheckAll = () => {
+    setCheckedIds(allOnPageChecked ? new Set() : new Set(sortedLeads.map((lead) => lead.id)));
+  };
+
+  const toggleCheckOne = (id: string) => {
+    setCheckedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   };
 
   const handleFilterChange =
@@ -149,7 +177,7 @@ export function LeadListDetailPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -157,36 +185,32 @@ export function LeadListDetailPage() {
       >
         <Link
           href="/dashboard"
-          className="mb-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+          className="mb-1.5 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Lead List
         </Link>
 
-        {currentStatus === "loading" && !current ? (
-          <Skeleton className="h-7 w-64" />
+        {isHeaderLoading ? (
+          <Skeleton className="h-5 w-48" />
         ) : currentStatus === "failed" ? (
           <div className="flex items-center gap-1.5 text-sm text-destructive">
             <CircleAlert className="h-4 w-4 shrink-0" />
             Could not load this lead list.
           </div>
         ) : (
-          <>
-            <h1 className="text-h1 text-foreground">
-              {current?.name ?? "Lead list"}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {(current?.leadCount ?? 0).toLocaleString()} leads
-              {skippedCount > 0
-                ? ` · ${skippedCount.toLocaleString()} rows skipped during import`
-                : ""}
-            </p>
-          </>
+          <PageHeader
+            size="compact"
+            title={current?.name ?? "Lead list"}
+            description={`${(current?.leadCount ?? 0).toLocaleString()} leads${
+              skippedCount > 0 ? ` · ${skippedCount.toLocaleString()} rows skipped during import` : ""
+            }`}
+          />
         )}
       </motion.div>
 
       <motion.div
-        className="overflow-hidden rounded-xl border border-border/70 bg-card shadow-sm"
+        className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut", delay: 0.04 }}
@@ -239,7 +263,7 @@ export function LeadListDetailPage() {
           </div>
         ) : null}
 
-        {leadsStatus === "loading" && leads.length === 0 ? (
+        {isLeadsLoading ? (
           <div className="space-y-2 p-4">
             {Array.from({ length: 5 }).map((_, index) => (
               <Skeleton key={index} className="h-10 w-full" />
@@ -265,74 +289,132 @@ export function LeadListDetailPage() {
           <>
             <Table containerClassName="border-0 rounded-none">
               <TableHeader>
-                <TableRow>
+                <TableRow className="divide-x divide-border/70">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allOnPageChecked}
+                      indeterminate={someOnPageChecked}
+                      onCheckedChange={toggleCheckAll}
+                      aria-label="Select all leads on this page"
+                    />
+                  </TableHead>
                   <SortableTableHead
-                    label="Name"
+                    label="First Name"
+                    icon={User}
                     sortKey="firstName"
                     activeKey={sortKey}
                     direction={sortDirection}
                     onSortChange={handleSortChange}
                   />
-                  <TableHead>Email</TableHead>
                   <SortableTableHead
-                    label="Company"
-                    sortKey="companyName"
+                    label="Last Name"
+                    icon={User}
+                    sortKey="lastName"
                     activeKey={sortKey}
                     direction={sortDirection}
                     onSortChange={handleSortChange}
                   />
                   <SortableTableHead
-                    label="Job title"
+                    label="Email"
+                    icon={Mail}
+                    sortKey="email"
+                    activeKey={sortKey}
+                    direction={sortDirection}
+                    onSortChange={handleSortChange}
+                  />
+                  <SortableTableHead
+                    label="Job Title"
+                    icon={Briefcase}
                     sortKey="jobTitle"
                     activeKey={sortKey}
                     direction={sortDirection}
                     onSortChange={handleSortChange}
                   />
                   <SortableTableHead
+                    label="Company"
+                    icon={Building2}
+                    sortKey="companyName"
+                    activeKey={sortKey}
+                    direction={sortDirection}
+                    onSortChange={handleSortChange}
+                  />
+                  <SortableTableHead
                     label="Location"
+                    icon={MapPin}
                     sortKey="location"
                     activeKey={sortKey}
                     direction={sortDirection}
                     onSortChange={handleSortChange}
                   />
+                  <TableHead>
+                    <span className="inline-flex items-center gap-1.5">
+                      <Globe className="h-3 w-3 shrink-0" />
+                      Website
+                    </span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedLeads.map((lead) => {
-                  const avatarColors = getAvatarColors(lead.id);
+                {sortedLeads.map((lead, index) => {
+                  const isChecked = checkedIds.has(lead.id);
                   return (
                     <TableRow
                       key={lead.id}
                       clickable
+                      className="group divide-x divide-border/70"
                       onClick={() => setSelectedLeadId(lead.id)}
                     >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2.5">
-                          <Avatar className="h-7 w-7">
-                            <AvatarFallback
-                              className={cn(avatarColors.bg, avatarColors.text)}
-                            >
-                              {getInitials(lead.firstName, lead.lastName)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span className="truncate">
-                            {[lead.firstName, lead.lastName]
-                              .filter(Boolean)
-                              .join(" ") || "—"}
-                          </span>
-                        </div>
+                      <TableCell
+                        className="w-10"
+                        onClick={(event) => event.stopPropagation()}
+                        onPointerDown={(event) => event.stopPropagation()}
+                      >
+                        <span
+                          className={cn(
+                            "tabular-nums text-muted-foreground",
+                            checkedIds.size > 0 ? "hidden" : "group-hover:hidden"
+                          )}
+                        >
+                          {index + 1}
+                        </span>
+                        <span className={cn(checkedIds.size > 0 ? "flex" : "hidden group-hover:flex")}>
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => toggleCheckOne(lead.id)}
+                            aria-label={`Select ${lead.firstName} ${lead.lastName}`}
+                          />
+                        </span>
                       </TableCell>
+                      <TableCell className="font-medium text-foreground">
+                        {lead.firstName || "—"}
+                      </TableCell>
+                      <TableCell className="text-foreground">{lead.lastName || "—"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {lead.email || "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {lead.companyName || "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {lead.jobTitle || "—"}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
+                        {lead.companyName || "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
                         {lead.location || "—"}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {lead.website ? (
+                          <a
+                            href={lead.website.startsWith("http") ? lead.website : `https://${lead.website}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={(event) => event.stopPropagation()}
+                            className="truncate text-primary hover:underline"
+                          >
+                            {lead.website}
+                          </a>
+                        ) : (
+                          "—"
+                        )}
                       </TableCell>
                     </TableRow>
                   );
@@ -376,6 +458,7 @@ export function LeadListDetailPage() {
 
       <LeadDetailDialog
         lead={selectedLead}
+        loading={isSelectedLeadLoading}
         open={Boolean(selectedLeadId)}
         onOpenChange={(open) => {
           if (!open) {

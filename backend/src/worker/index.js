@@ -4,6 +4,8 @@ const { emailQueueService } = require("../services/email-queue.service");
 const { emailJobRepository } = require("../repositories/email-job.repository");
 const { gmailConnectionRepository } = require("../repositories/gmail-connection.repository");
 const { sendMessage } = require("../services/gmail.service");
+const { conversationService } = require("../services/conversation.service");
+const { campaignEnrollmentService } = require("../services/campaign-enrollment.service");
 const { EmailWorker } = require("./email.worker");
 const { TokenBucketRateLimiter } = require("./rate-limiter.util");
 
@@ -22,6 +24,9 @@ async function bootstrap() {
     emailJobRepository,
     gmailConnectionRepository,
     sendGmailMessage: sendMessage,
+    recordOutboundMessage: conversationService.recordOutboundMessage.bind(conversationService),
+    onCampaignEmailSent: campaignEnrollmentService.handleEmailSent.bind(campaignEnrollmentService),
+    onCampaignSendFailed: campaignEnrollmentService.handleSendFailure.bind(campaignEnrollmentService),
     rateLimiter,
     concurrency: env.WORKER_CONCURRENCY,
     visibilityTimeoutSeconds: env.SQS_VISIBILITY_TIMEOUT_SECONDS,

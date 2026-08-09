@@ -25,6 +25,21 @@ class EmailJobRepository {
     return EmailJob.findById(id);
   }
 
+  /** Used by the campaign scheduler, which (unlike the bulk ad-hoc sender)
+   * needs the job id back either way to link it onto the enrollment — so a
+   * duplicate-key hit recovers the existing doc instead of being swallowed. */
+  async createOrGetExisting(data) {
+    try {
+      return await EmailJob.create(data);
+    } catch (err) {
+      if (err.code === 11000) {
+        return EmailJob.findOne({ idempotencyKey: data.idempotencyKey });
+      }
+
+      throw err;
+    }
+  }
+
 
   async markProcessing(id) {
     return EmailJob.findOneAndUpdate(

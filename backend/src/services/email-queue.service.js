@@ -18,6 +18,16 @@ function assertQueueConfigured() {
   }
 }
 
+/** AWS requires FIFO queue names (and therefore their URLs) to end in
+ * ".fifo" — a reliable way to tell whether SQS_EMAIL_QUEUE_URL points at a
+ * FIFO queue (as opposed to the standard queue scripts/setup-sqs.js
+ * provisions), since FIFO and standard queues take different parameters on
+ * SendMessageBatch (FIFO *requires* MessageGroupId/MessageDeduplicationId;
+ * standard *rejects* them). */
+function isFifoQueue() {
+  return env.SQS_EMAIL_QUEUE_URL?.endsWith(".fifo") ?? false;
+}
+
 function chunk(items, size) {
   const chunks = [];
   for (let i = 0; i < items.length; i += size) {
@@ -38,6 +48,7 @@ class EmailQueueService {
     const batches = chunk(emailJobIds, SEND_BATCH_SIZE);
     const successIds = [];
     const failed = [];
+    const fifo = isFifoQueue();
 
     for (const batch of batches) {
       const command = new SendMessageBatchCommand({
@@ -48,6 +59,14 @@ class EmailQueueService {
             type: SQS_MESSAGE_TYPES.SEND_EMAIL,
             emailJobId: emailJobId.toString(),
           }),
+          // Each job gets its own group so FIFO ordering (which we don't
+          // need across different jobs) never serializes the whole queue
+          // down to one message at a time. Reusing the job id as the
+          // dedup id is a free extra safety net on top of our own
+          // idempotencyKey-based dedup.
+          ...(fifo
+            ? { MessageGroupId: emailJobId.toString(), MessageDeduplicationId: emailJobId.toString() }
+            : {}),
         })),
       });
 

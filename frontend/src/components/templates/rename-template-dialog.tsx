@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Spinner } from "@/components/ui/spinner";
 
 interface RenameTemplateDialogProps {
   open: boolean;
@@ -62,7 +62,7 @@ export function RenameTemplateDialog({ open, onOpenChange, currentName, isSaving
             Cancel
           </Button>
           <Button type="button" disabled={!canConfirm} onClick={() => onConfirm(trimmed)}>
-            {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {isSaving ? <Spinner /> : null}
             Save
           </Button>
         </DialogFooter>
