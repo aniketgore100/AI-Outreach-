@@ -470,11 +470,15 @@ function CampaignConfigurationPageContent({ mode, campaignId }: { mode: PageMode
     saveStatus: templateSaveStatus,
     saveError: templateSaveError,
   } = useAppSelector((state) => state.templates);
+
+
   const {
     items: leadLists,
     status: leadListsStatus,
     error: leadListsError,
   } = useAppSelector((state) => state.leadLists);
+
+  
   const {
     current: campaign,
     currentStatus: campaignStatus,

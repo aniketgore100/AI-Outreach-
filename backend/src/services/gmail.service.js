@@ -115,6 +115,28 @@ const listHistory = async ({ accessToken, refreshToken, startHistoryId, pageToke
   return response.data;
 };
 
+/** Gmail search operators take epoch seconds, not milliseconds. */
+function buildSentQuery({ after, before }) {
+  const parts = ["in:sent"];
+  if (after) parts.push(`after:${Math.floor(new Date(after).getTime() / 1000)}`);
+  if (before) parts.push(`before:${Math.floor(new Date(before).getTime() / 1000)}`);
+  return parts.join(" ");
+}
+
+/** One page of Sent-folder message ids within an optional date window.
+ * `messages.list` only returns `{id, threadId}` — callers fetch/parse each
+ * one with `getMessage` below. */
+const listSentMessages = async ({ accessToken, refreshToken, after, before, pageToken }) => {
+  const gmail = createGmailClient({ accessToken, refreshToken });
+  const response = await gmail.users.messages.list({
+    userId: "me",
+    q: buildSentQuery({ after, before }),
+    pageToken,
+    maxResults: 100,
+  });
+  return response.data;
+};
+
 function decodeBase64Url(data) {
   if (!data) return "";
   return Buffer.from(data, "base64url").toString("utf8");
@@ -176,4 +198,4 @@ const getMessage = async ({ accessToken, refreshToken, messageId }) => {
   };
 };
 
-module.exports = { sendMessage, getProfile, listHistory, getMessage };
+module.exports = { sendMessage, getProfile, listHistory, listSentMessages, getMessage };

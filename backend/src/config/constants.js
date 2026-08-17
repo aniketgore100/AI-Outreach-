@@ -113,6 +113,37 @@ const MESSAGE_DIRECTION = {
   INBOUND: "inbound",
 };
 
+/** draft = candidates fetched, user still selecting. confirmed = user saved
+ * the selection as this account's Persona Source Set. */
+const PERSONA_SOURCE_SET_STATUS = {
+  DRAFT: "draft",
+  CONFIRMED: "confirmed",
+};
+
+const PERSONA_TIME_PERIOD_PRESET = {
+  THREE_MONTHS: "3m",
+  SIX_MONTHS: "6m",
+  TWELVE_MONTHS: "12m",
+  ALL_TIME: "all",
+  CUSTOM: "custom",
+};
+
+/** Baseline server-side filters applied before a sent email is surfaced as
+ * an import candidate — see email-classification.util.js. */
+const PERSONA_FILTER_REASON = {
+  INTERNAL_RECIPIENT: "internal_recipient",
+  AUTO_GENERATED: "auto_generated",
+  TOO_SHORT: "too_short",
+  TOO_LONG: "too_long",
+};
+
+const PERSONA_IMPORT_LIMITS = {
+  MIN_BODY_CHARS: 50,
+  MAX_BODY_CHARS: 5000,
+  MAX_MESSAGES_PER_IMPORT: 500,
+  LOW_SELECTION_WARNING_THRESHOLD: 10,
+};
+
 module.exports = {
   COOKIE_NAMES,
   AUTH_ERROR_MESSAGES,
@@ -131,4 +162,8 @@ module.exports = {
   MESSAGE_DIRECTION,
   ENROLLMENT_STATUS,
   SEQUENCE_STEP,
+  PERSONA_SOURCE_SET_STATUS,
+  PERSONA_TIME_PERIOD_PRESET,
+  PERSONA_FILTER_REASON,
+  PERSONA_IMPORT_LIMITS,
 };
