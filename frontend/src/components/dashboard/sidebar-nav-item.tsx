@@ -20,6 +20,7 @@ interface SidebarNavItemProps {
 export function SidebarNavItem({ href, label, icon: Icon, collapsed }: SidebarNavItemProps) {
   const pathname = usePathname();
   // const   const pathname = usePathname();
+  // const   const pathname = usePathname();
 
   const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
 
