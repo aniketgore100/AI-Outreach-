@@ -24,15 +24,22 @@ const gmailConnectionSchema = new mongoose.Schema(
       default: "connected", 
       index: true 
     },
-    accessTokenEncrypted: { 
-      type: String, 
-      required: true, 
-      select: false 
+    accessTokenEncrypted: {
+      type: String,
+      required: true,
+      select: false
     },
-    refreshTokenEncrypted: { 
-      type: String, 
-      required: true, 
-      select: false 
+    refreshTokenEncrypted: {
+      type: String,
+      required: true,
+      select: false
+    },
+    // Space-delimited scopes actually granted by Google for this connection's
+    // tokens (from the OAuth token response). Null for connections made
+    // before this was tracked — treated as "missing readonly" by consumers.
+    scope: {
+      type: String,
+      default: null,
     },
     connectedAt: {
       type: Date,

@@ -29,7 +29,6 @@ function getInitials(
 const SECTION_TITLES: Record<string, string> = {
   "/dashboard/campaigns": "Campaigns",
   "/dashboard/inbox": "Inbox",
-  "/dashboard/ai-persona": "AI Persona",
   "/dashboard/templates": "Email Templates",
   "/dashboard": "Lead List",
   "/dashboard/connections": "Connections",

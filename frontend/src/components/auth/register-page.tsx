@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BarChart3, BrainCircuit, CalendarClock, Mail, MessagesSquare, Workflow } from "lucide-react";
+import { ArrowRight, BarChart3, CalendarClock, Mail, MessagesSquare, Workflow } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -9,12 +9,6 @@ const features = [
     title: "Multi-step Campaigns",
     description:
       "Create personalized email sequences with intelligent follow-up scheduling that adapts to your outreach workflow.",
-  },
-  {
-    icon: BrainCircuit,
-    title: "AI Writing Persona",
-    description:
-      "Learns your writing style, tone, and communication patterns to generate replies that sound like you—not like AI.",
   },
   {
     icon: MessagesSquare,

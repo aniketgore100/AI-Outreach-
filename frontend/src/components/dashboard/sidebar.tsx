@@ -4,14 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Bot,
   FileText,
   Inbox,
   Megaphone,
   PanelLeftClose,
   PanelLeftOpen,
   Plug,
-  Sparkles,
   Users,
 } from "lucide-react";
 
@@ -22,9 +20,9 @@ import { cn } from "@/lib/utils";
 const NAV_ITEMS = [
   { href: "/dashboard/campaigns", label: "Campaigns", icon: Megaphone },
   { href: "/dashboard/inbox", label: "Inbox", icon: Inbox },
-  { href: "/dashboard/ai-persona", label: "AI Persona", icon: Sparkles },
   { href: "/dashboard/templates", label: "Email Templates", icon: FileText },
   { href: "/dashboard", label: "Lead List", icon: Users },
+  {href: "/dashboard/Ai-Persona", label : "AI Persona", icon:Users},
   { href: "/dashboard/connections", label: "Connections", icon: Plug },
 ];
 

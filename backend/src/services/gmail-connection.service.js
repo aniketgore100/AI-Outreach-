@@ -7,6 +7,8 @@ const { encryptToken, decryptToken } = require("../utils/token-crypto.util");
 const { toGmailConnectionDto } = require("../dto/gmail-connection/gmail-connection-response.dto");
 const { env } = require("../config/env");
 
+const GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
+
 const GOOGLE_OAUTH_SCOPE = [
   "openid",
   "email",
@@ -15,8 +17,15 @@ const GOOGLE_OAUTH_SCOPE = [
   // Needed to detect and read replies to outreach threads. Accounts
   // connected before this scope was added only ever granted gmail.send and
   // must reconnect — their stored tokens simply can't read mail.
-  "https://www.googleapis.com/auth/gmail.readonly",
+  GMAIL_READONLY_SCOPE,
 ];
+
+/** Connections made before `scope` was tracked (or that pre-date the
+ * readonly scope being requested) have no record of it — treated as
+ * missing, since their stored tokens can't actually read mail either way. */
+function hasReadonlyScope(connection) {
+  return Boolean(connection.scope && connection.scope.split(" ").includes(GMAIL_READONLY_SCOPE));
+}
 
 function assertGoogleOAuthConfig() {
   const missing = [
@@ -175,6 +184,7 @@ class GmailConnectionService {
       const tokenPayload = {
         email: normalizedEmail,
         accessTokenEncrypted: encryptToken(tokenData.access_token),
+        scope: tokenData.scope ?? null,
       };
 
       if (existing) {
@@ -239,4 +249,4 @@ class GmailConnectionService {
 
 const gmailConnectionService = new GmailConnectionService(gmailConnectionRepository, platformConfigService);
 
-module.exports = { GmailConnectionService, gmailConnectionService };
+module.exports = { GmailConnectionService, gmailConnectionService, hasReadonlyScope, GMAIL_READONLY_SCOPE };

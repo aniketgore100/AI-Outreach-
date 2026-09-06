@@ -5,7 +5,6 @@ import campaignReducer from "./slices/campaign.slice";
 import conversationReducer from "./slices/conversation.slice";
 import gmailConnectionReducer from "./slices/gmail-connection.slice";
 import leadListReducer from "./slices/lead-list.slice";
-import personaImportReducer from "./slices/persona-import.slice";
 import templateReducer from "./slices/template.slice";
 
 export const store = configureStore({
@@ -16,7 +15,6 @@ export const store = configureStore({
     templates: templateReducer,
     campaigns: campaignReducer,
     conversations: conversationReducer,
-    personaImport: personaImportReducer,
   },
 });
 
