@@ -15,6 +15,8 @@ interface SidebarNavItemProps {
   collapsed: boolean;
 }
 
+// sidebar is dynamic, it should accept breadcrumb elements 
+
 export function SidebarNavItem({ href, label, icon: Icon, collapsed }: SidebarNavItemProps) {
   const pathname = usePathname();
   const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
