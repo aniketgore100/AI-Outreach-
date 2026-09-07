@@ -46,6 +46,8 @@ export function TopNavbar() {
   };
 
   const sectionTitle = SECTION_TITLES[pathname];
+    // const sectionTitle = SECTION_TITLES[pathname];
+
 
   return (
     <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center justify-between border-b border-border/70 bg-background px-3 sm:px-4">
