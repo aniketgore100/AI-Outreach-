@@ -21,6 +21,7 @@ export function SidebarNavItem({ href, label, icon: Icon, collapsed }: SidebarNa
   const pathname = usePathname();
   // const   const pathname = usePathname();
   // const   const pathname = usePathname();
+  // const   const pathname = usePathname();
 
   const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
 
