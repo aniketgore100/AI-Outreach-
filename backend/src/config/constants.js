@@ -10,7 +10,6 @@ const AUTH_ERROR_MESSAGES = {
   USER_NOT_FOUND: "User not found",
 };
 
-/** The platform-standard lead fields every uploaded column maps onto (or "customFields"/"ignored"). */
 const STANDARD_LEAD_FIELDS = [
   "firstName",
   "lastName",
@@ -27,14 +26,91 @@ const LEAD_IMPORT_LIMITS = {
   MAX_LEADS_PER_IMPORT: 20000,
 };
 
-/** Keys into the PlatformConfig collection — root-level settings changeable
- * without a redeploy (see services/platform-config.service.js). */
+
 const PLATFORM_CONFIG_KEYS = {
   MAX_GMAIL_CONNECTIONS_PER_USER: "MAX_GMAIL_CONNECTIONS_PER_USER",
 };
 
 const PLATFORM_CONFIG_DEFAULTS = {
   MAX_GMAIL_CONNECTIONS_PER_USER: 5,
+};
+
+
+const EMAIL_JOB_STATUS = {
+  QUEUED: "queued",
+  PROCESSING: "processing",
+  SENT: "sent",
+  FAILED: "failed",
+  DEAD_LETTER: "dead_letter",
+};
+
+const SQS_MESSAGE_TYPES = {
+  SEND_EMAIL: "send_email",
+};
+
+/** draft = still being written, active = finished and ready to use. */
+const TEMPLATE_STATUS = {
+  DRAFT: "draft",
+  ACTIVE: "active",
+};
+
+/**
+ * draft = being configured, ready = fully configured and launch-ready,
+ * active/paused/completed/archived are reserved for the future worker
+ * that will actually run the send sequence.
+ */
+const CAMPAIGN_STATUS = {
+  DRAFT: "draft",
+  READY: "ready",
+  ACTIVE: "active",
+  PAUSED: "paused",
+  COMPLETED: "completed",
+  ARCHIVED: "archived",
+};
+
+const CAMPAIGN_EDITABLE_STATUSES = [CAMPAIGN_STATUS.DRAFT, CAMPAIGN_STATUS.READY, CAMPAIGN_STATUS.PAUSED];
+
+const CAMPAIGN_REPLY_METHOD = {
+  MANUAL: "manual",
+  AI: "ai",
+  TEMPLATE: "template",
+};
+
+const CAMPAIGN_WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+
+/**
+ * pending = enrolled, nothing sent yet. initial_queued/follow_up_queued =
+ * the scheduler has claimed this row and created/enqueued an EmailJob for
+ * that step, awaiting EmailWorker's send confirmation. initial_sent = the
+ * initial email was delivered; if follow-up is enabled the row stays here
+ * (with nextActionAt set) until the follow-up is due. completed/failed are
+ * terminal. Whether the lead replied is tracked separately via
+ * CampaignEnrollment.repliedAt, not as a status value.
+ */
+const ENROLLMENT_STATUS = {
+  PENDING: "pending",
+  INITIAL_QUEUED: "initial_queued",
+  INITIAL_SENT: "initial_sent",
+  FOLLOW_UP_QUEUED: "follow_up_queued",
+  COMPLETED: "completed",
+  FAILED: "failed",
+};
+
+const SEQUENCE_STEP = {
+  INITIAL: "initial",
+  FOLLOW_UP: "follow_up",
+  REPLY: "reply",
+};
+
+/** open = visible in the active inbox, archived = hidden from the default view. */
+const CONVERSATION_STATUS = {
+  OPEN: "open",
+  ARCHIVED: "archived",
+};
+
+const MESSAGE_DIRECTION = {
+  OUTBOUND: "outbound",
+  INBOUND: "inbound",
 };
 
 module.exports = {
@@ -44,4 +120,15 @@ module.exports = {
   LEAD_IMPORT_LIMITS,
   PLATFORM_CONFIG_KEYS,
   PLATFORM_CONFIG_DEFAULTS,
+  EMAIL_JOB_STATUS,
+  SQS_MESSAGE_TYPES,
+  TEMPLATE_STATUS,
+  CAMPAIGN_STATUS,
+  CAMPAIGN_EDITABLE_STATUSES,
+  CAMPAIGN_REPLY_METHOD,
+  CAMPAIGN_WEEKDAYS,
+  CONVERSATION_STATUS,
+  MESSAGE_DIRECTION,
+  ENROLLMENT_STATUS,
+  SEQUENCE_STEP,
 };

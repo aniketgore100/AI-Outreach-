@@ -1,13 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { CircleAlert, Loader2, Mail, RotateCcw } from "lucide-react";
+import Image from "next/image";
+import { motion } from "framer-motion";
+import { Mail } from "lucide-react";
+import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import { formatDate } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { useAppDispatch } from "@/store/hooks";
 import { disconnectGmailAccount, startGoogleOAuth } from "@/store/slices/gmail-connection.slice";
 import type { GmailConnection } from "@/types/gmail-connection.types";
@@ -15,27 +18,33 @@ import type { GmailConnection } from "@/types/gmail-connection.types";
 export function GmailConnectionsList({ connections }: { connections: GmailConnection[] }) {
   const dispatch = useAppDispatch();
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const [reconnectError, setReconnectError] = useState<string | null>(null);
 
   if (connections.length === 0) {
     return (
-      <EmptyState
-        icon={Mail}
-        title="No Gmail accounts connected"
-        description="Connect a Gmail account to start sending and tracking outreach from your own inbox."
-      />
+      <div className="p-5">
+        <EmptyState
+          icon={Mail}
+          title="No Gmail accounts connected"
+          description="Connect a Gmail account to start sending and tracking outreach from your own inbox."
+        />
+      </div>
     );
   }
 
   const handleDisconnect = async (id: string) => {
     setPendingId(id);
-    await dispatch(disconnectGmailAccount(id));
+    const result = await dispatch(disconnectGmailAccount(id));
     setPendingId(null);
+
+    if (disconnectGmailAccount.fulfilled.match(result)) {
+      toast.success("Gmail account disconnected");
+    } else {
+      toast.error(result.payload ?? "Could not disconnect this account");
+    }
   };
 
   const handleReconnect = async (email: string, id: string) => {
     setPendingId(id);
-    setReconnectError(null);
 
     const result = await dispatch(startGoogleOAuth(email));
 
@@ -44,47 +53,36 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
       return;
     }
 
-    if (!startGoogleOAuth.fulfilled.match(result)) {
-      setReconnectError(result.payload ?? "Could not reconnect this account");
-    }
-
+    toast.error(result.payload ?? "Could not reconnect this account");
     setPendingId(null);
   };
 
-  return (
-    <div className="space-y-3">
-      <AnimatePresence initial={false}>
-        {reconnectError ? (
-          <motion.p
-            key="reconnect-error"
-            className="flex items-center gap-1.5 text-small text-destructive"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.14, ease: "easeOut" }}
-          >
-            <CircleAlert className="h-3.5 w-3.5 shrink-0" />
-            {reconnectError}
-          </motion.p>
-        ) : null}
-      </AnimatePresence>
+  const handleToggle = (connection: GmailConnection, nextChecked: boolean) => {
+    if (nextChecked) {
+      void handleReconnect(connection.email, connection.id);
+    } else {
+      void handleDisconnect(connection.id);
+    }
+  };
 
-      <ul className="divide-y divide-border rounded-xl border border-border bg-card shadow-sm">
+  return (
+    <div>
+      <ul className="divide-y divide-border">
         {connections.map((connection) => (
           <motion.li
             key={connection.id}
-            className="flex items-center justify-between gap-4 px-4 py-3"
+            className="flex items-center justify-between gap-4 px-4 py-2.5"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
             layout
           >
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
-                <Mail className="h-4 w-4" />
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-muted p-1.5">
+                <Image src="/gmailLogo.png" alt="" width={20} height={20} unoptimized className="h-full w-full" />
               </span>
-              <div>
-                <p className="text-sm font-medium text-foreground">{connection.email}</p>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{connection.email}</p>
                 <p className="text-small text-muted-foreground">
                   {connection.status === "connected"
                     ? `Connected ${formatDate(connection.connectedAt)}`
@@ -93,38 +91,26 @@ export function GmailConnectionsList({ connections }: { connections: GmailConnec
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              <Badge variant={connection.status === "connected" ? "success" : "neutral"}>
+            <div className="flex shrink-0 items-center gap-2.5">
+              {pendingId === connection.id ? <Spinner size="sm" className="text-muted-foreground" /> : null}
+              <span
+                className={cn(
+                  "text-small font-medium",
+                  connection.status === "connected" ? "text-success" : "text-muted-foreground"
+                )}
+              >
                 {connection.status === "connected" ? "Connected" : "Disconnected"}
-              </Badge>
-
-              {connection.status === "connected" ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={pendingId === connection.id}
-                  onClick={() => handleDisconnect(connection.id)}
-                >
-                  {pendingId === connection.id ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Disconnect
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={pendingId === connection.id}
-                  onClick={() => handleReconnect(connection.email, connection.id)}
-                >
-                  {pendingId === connection.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <RotateCcw className="h-4 w-4" />
-                  )}
-                  Reconnect
-                </Button>
-              )}
+              </span>
+              <Switch
+                checked={connection.status === "connected"}
+                disabled={pendingId === connection.id}
+                onCheckedChange={(next) => handleToggle(connection, next)}
+                aria-label={
+                  connection.status === "connected"
+                    ? `Disconnect ${connection.email}`
+                    : `Reconnect ${connection.email}`
+                }
+              />
             </div>
           </motion.li>
         ))}

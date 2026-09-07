@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { useMinLoadingDuration } from "@/hooks/use-min-loading-duration";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchLeadLists } from "@/store/slices/lead-list.slice";
 
@@ -49,7 +50,10 @@ export function LeadsPage() {
     return [...items].sort((a, b) => {
       let result = 0;
       if (sortKey === "fileName") {
-        result = a.uploadMetadata.originalFileName.localeCompare(b.uploadMetadata.originalFileName);
+        result = a.uploadMetadata.originalFileName.localeCompare(b.uploadMetadata.originalFileName, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       } else if (sortKey === "leadCount") {
         result = a.leadCount - b.leadCount;
       } else {
@@ -76,27 +80,36 @@ export function LeadsPage() {
   // With no search active, an empty result set means the account truly has
   // no lead lists yet, so the toolbar is hidden in favor of the empty state.
   const showToolbar = isSearchActive || items.length > 0;
-  const isInitialLoading = status === "loading" && items.length === 0;
+  const isInitialLoading = useMinLoadingDuration(status === "loading" && items.length === 0);
+  // const isInitialLoading = useMinLoadingDuration(status === "loading" && items.length === 0);
 
   return (
     <div className="w-full space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {showToolbar ? (
+          <div className="relative w-full sm:max-w-[18rem]">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search by file name"
+              maxLength={200}
+              className="h-8 w-full pl-8 text-sm"
+            />
+          </div>
+        ) : (
+          <div />
+        )}
+
+        <LeadListUploader />
+      </div>
+
       <motion.div
-        className="overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+        className="overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm"
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.18, ease: "easeOut", delay: 0.05 }}
       >
-        <div className="flex flex-col gap-4 border-b border-border/70 px-4 py-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Lead Lists</p>
-            <h1 className="text-h1 text-foreground">Imported Lead Lists</h1>
-            <p className="max-w-2xl text-small text-muted-foreground">
-              Review, open, or remove uploaded lists from one place.
-            </p>
-          </div>
-          <LeadListUploader />
-        </div>
-
         <AnimatePresence initial={false} mode="wait">
           {status === "failed" ? (
             <motion.div
@@ -120,17 +133,7 @@ export function LeadsPage() {
         </AnimatePresence>
 
         {showToolbar ? (
-          <div className="flex flex-col gap-3 border-b border-border/70 px-4 py-3 md:flex-row md:items-center md:justify-between">
-            <div className="relative w-full max-w-sm">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by file name"
-                maxLength={200}
-                className="h-8 w-full pl-8 text-sm"
-              />
-            </div>
+          <div className="flex items-center justify-end border-b border-border/70 px-3 py-2.5 md:hidden">
             {pagination ? (
               <p className="text-small text-muted-foreground">
                 {pagination.total.toLocaleString()} {pagination.total === 1 ? "list" : "lists"}

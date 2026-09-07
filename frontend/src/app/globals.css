@@ -38,6 +38,9 @@
 
   --ring: #4f46e5;
 
+  /* Sidebar — chrome surface, separate from --card */
+  --sidebar: #ffffff;
+
   /* Radius */
   --radius-sm: 0.375rem; /* 6px */
   --radius-md: 0.5rem;   /* 8px */
@@ -88,6 +91,10 @@
 
   --ring: #818cf8;
 
+  /* Sidebar — dark mode has no "cream," so keep it a touch darker than --card
+     to still read as a distinct chrome surface. */
+  --sidebar: #0f0f11;
+
   /* Shadows read heavier on dark backgrounds even at the same alpha, so darken/soften slightly */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.24);
   --shadow-md: 0 4px 16px -2px rgb(0 0 0 / 0.4);
@@ -126,6 +133,7 @@
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
 
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
@@ -240,5 +248,141 @@ button:disabled,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Shared rendering rules for template rich-text content — applied to both
+   the Tiptap editor surface and the live preview panel so the preview is an
+   honest match for what was composed (and, via gmail.service.js's HTML
+   email, what actually gets sent). */
+.email-content {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  word-break: break-word;
+}
+
+/* Raw email HTML (from Gmail, Outlook, etc.) frequently carries its own
+   inline font-size on p/div/span/font/td — left alone, that makes pasted
+   messages render "oversized" and inconsistent with the rest of the thread.
+   Force those back to the container's size; headings/code keep their own
+   deliberate sizes below since those selectors are untouched. */
+.email-content p,
+.email-content div,
+.email-content span,
+.email-content font,
+.email-content li,
+.email-content td {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+.email-content > *:first-child {
+  margin-top: 0;
+}
+
+.email-content > *:last-child {
+  margin-bottom: 0;
+}
+
+.email-content p {
+  margin: 0 0 0.75em;
+}
+
+.email-content h1,
+.email-content h2,
+.email-content h3 {
+  font-weight: 600;
+  margin: 1em 0 0.5em;
+  line-height: 1.3;
+}
+
+.email-content h2 {
+  font-size: 1.125rem;
+}
+
+.email-content h3 {
+  font-size: 0.9375rem;
+}
+
+.email-content ul,
+.email-content ol {
+  margin: 0 0 0.75em;
+  padding-left: 1.25em;
+}
+
+.email-content li {
+  margin: 0.25em 0;
+}
+
+.email-content a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.email-content strong {
+  font-weight: 600;
+}
+
+.email-content blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 0.75em;
+  color: var(--muted-foreground);
+  margin: 0 0 0.75em;
+}
+
+.email-content code {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  background-color: var(--muted);
+  border-radius: var(--radius-sm);
+  padding: 0.1em 0.35em;
+}
+
+.email-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+/* Tiptap's Placeholder extension marks the empty node with this class and a
+   data-placeholder attribute, but ships no CSS of its own. */
+.email-content .is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--muted-foreground);
+  pointer-events: none;
+}
+
+/* Shared loading-skeleton shimmer. A translucent sweep over the base
+   --muted fill, sized purely by whatever className the call site sets
+   (h-*, w-*, rounded-*) — no fixed dimensions here so it fits a single
+   text line or a full table/card equally well. */
+@keyframes shimmer-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--muted);
+}
+
+.animate-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.35), transparent);
+  animation: shimmer-sweep 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-shimmer::after {
+    animation: none;
   }
 }

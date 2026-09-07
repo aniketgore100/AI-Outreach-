@@ -15,9 +15,15 @@ interface SidebarNavItemProps {
   collapsed: boolean;
 }
 
+// sidebar is dynamic, it should accept breadcrumb elements 
+
 export function SidebarNavItem({ href, label, icon: Icon, collapsed }: SidebarNavItemProps) {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  // const   const pathname = usePathname();
+  // const   const pathname = usePathname();
+  // const   const pathname = usePathname();
+
+  const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(`${href}/`));
 
   const link = (
     <Link
@@ -25,10 +31,10 @@ export function SidebarNavItem({ href, label, icon: Icon, collapsed }: SidebarNa
       aria-label={collapsed ? label : undefined}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "flex h-9 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors",
+        "flex h-8 items-center gap-2.5 rounded-md px-2.5 text-sm font-medium transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         collapsed && "justify-center px-0",
-        isActive ? "bg-accent text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+        isActive ? "bg-accent text-primary" : "text-foreground hover:bg-accent"
       )}
     >
       <Icon className="h-4 w-4 shrink-0" />

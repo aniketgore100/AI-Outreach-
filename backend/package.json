@@ -7,10 +7,18 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
+    "worker": "node src/worker/index.js",
+    "worker:dev": "node --watch src/worker/index.js",
+    "sync": "node src/worker/sync-index.js",
+    "sync:dev": "node --watch src/worker/sync-index.js",
+    "scheduler": "node src/worker/campaign-scheduler-index.js",
+    "scheduler:dev": "node --watch src/worker/campaign-scheduler-index.js",
+    "sqs:setup": "node scripts/setup-sqs.js",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@aws-sdk/client-sqs": "^3.1106.0",
     "bcryptjs": "^3.0.3",
     "compression": "^1.7.5",
     "cookie-parser": "^1.4.7",
@@ -18,8 +26,10 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.5.0",
+    "googleapis": "^174.0.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
+    "luxon": "^3.7.2",
     "mongoose": "^9.9.1",
     "morgan": "^1.11.0",
     "zod": "^4.0.0"

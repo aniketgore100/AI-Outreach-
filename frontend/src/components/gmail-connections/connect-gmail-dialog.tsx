@@ -1,6 +1,7 @@
 "use client";
 
-import { CircleAlert, ExternalLink, Loader2 } from "lucide-react";
+import Image from "next/image";
+import { CircleAlert, ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -11,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { GoogleIcon } from "@/components/icons/google-icon";
+import { Spinner } from "@/components/ui/spinner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearConnectError, startGoogleOAuth } from "@/store/slices/gmail-connection.slice";
 
@@ -44,8 +45,8 @@ export function ConnectGmailDialog({ open, onOpenChange }: ConnectGmailDialogPro
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <GoogleIcon className="h-5 w-5" />
-            Connect Google Account
+            <Image src="/gmailLogo.png" alt="" width={20} height={20} unoptimized className="h-5 w-5" />
+            Connect Gmail Account
           </DialogTitle>
           <DialogDescription>
             We&apos;ll send you to Google&apos;s consent screen so you can authorize this workspace securely. The
@@ -71,11 +72,7 @@ export function ConnectGmailDialog({ open, onOpenChange }: ConnectGmailDialogPro
             Cancel
           </Button>
           <Button type="button" disabled={connectStatus === "loading"} onClick={handleConfirm}>
-            {connectStatus === "loading" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <ExternalLink className="h-4 w-4" />
-            )}
+            {connectStatus === "loading" ? <Spinner /> : <ExternalLink className="h-4 w-4" />}
             Continue with Google
           </Button>
         </DialogFooter>

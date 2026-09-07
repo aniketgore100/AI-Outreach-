@@ -36,6 +36,25 @@ class GmailConnectionRepository {
       { returnDocument: "after" }
     );
   }
+
+  async listConnected() {
+    return GmailConnection.find({ status: "connected" }).select("+accessTokenEncrypted +refreshTokenEncrypted");
+  }
+
+  /** Campaign activation auto-selects a sending account rather than asking
+   * the user to pick one — the most recently connected active account is
+   * the most likely one they intend to use. */
+  async findMostRecentConnectedForUser(userId) {
+    return GmailConnection.findOne({ userId, status: "connected" }).sort({ connectedAt: -1 });
+  }
+
+  async updateSyncCursor(id, { historyId }) {
+    return GmailConnection.findByIdAndUpdate(
+      id,
+      { $set: { historyId, lastSyncedAt: new Date() } },
+      { returnDocument: "after" }
+    );
+  }
 }
 
 const gmailConnectionRepository = new GmailConnectionRepository();

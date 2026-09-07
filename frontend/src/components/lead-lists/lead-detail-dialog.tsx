@@ -28,11 +28,13 @@ const DISPLAY_FIELDS = Object.keys(FIELD_LABELS) as DisplayField[];
 
 interface LeadDetailDialogProps {
   lead: Lead | null;
+  loading?: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogProps) {
+export function LeadDetailDialog({ lead, loading, open, onOpenChange }: LeadDetailDialogProps) {
+  const showSkeleton = loading ?? !lead;
   const customFieldEntries = lead ? Object.entries(lead.customFields) : [];
 
   return (
@@ -46,7 +48,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange }: LeadDetailDialogP
         </DialogHeader>
 
         <div className="max-h-[60vh] overflow-y-auto p-5">
-          {!lead ? (
+          {showSkeleton || !lead ? (
             <div className="space-y-3">
               {Array.from({ length: 5 }).map((_, index) => (
                 <Skeleton key={index} className="h-5 w-full" />

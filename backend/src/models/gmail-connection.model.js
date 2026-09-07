@@ -2,17 +2,63 @@ const mongoose = require("mongoose");
 
 const gmailConnectionSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    email: { type: String, required: true, trim: true, lowercase: true },
-    // Google's stable account identifier (the `sub` claim once real OAuth is
-    // wired up) — keeps one connection document per Google account forever,
-    // reactivated on reconnect rather than duplicated.
-    googleAccountId: { type: String, required: true },
-    status: { type: String, enum: ["connected", "disconnected"], default: "connected", index: true },
-    accessTokenEncrypted: { type: String, required: true, select: false },
-    refreshTokenEncrypted: { type: String, required: true, select: false },
-    connectedAt: { type: Date, default: Date.now },
-    disconnectedAt: { type: Date, default: null },
+    userId: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: "User", 
+      required: true, 
+      index: true 
+    },
+    email: { 
+      type: String, 
+      required: true, 
+      trim: true, 
+      lowercase: true 
+    },
+    googleAccountId: { 
+      type: String, 
+      required: true 
+    },
+    status: { 
+      type: String, 
+      enum: ["connected", "disconnected"], 
+      default: "connected", 
+      index: true 
+    },
+    accessTokenEncrypted: {
+      type: String,
+      required: true,
+      select: false
+    },
+    refreshTokenEncrypted: {
+      type: String,
+      required: true,
+      select: false
+    },
+    // Space-delimited scopes actually granted by Google for this connection's
+    // tokens (from the OAuth token response). Null for connections made
+    // before this was tracked — treated as "missing readonly" by consumers.
+    scope: {
+      type: String,
+      default: null,
+    },
+    connectedAt: {
+      type: Date,
+      default: Date.now
+    },
+    disconnectedAt: {
+      type: Date,
+      default: null
+    },
+    // Delta-sync cursor for the Gmail reply-sync worker (users.history.list).
+    // Null until the first sync pass bootstraps it via users.getProfile.
+    historyId: {
+      type: String,
+      default: null,
+    },
+    lastSyncedAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true, collection: "gmail_connections" }
 );

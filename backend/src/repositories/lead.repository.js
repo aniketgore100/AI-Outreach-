@@ -2,9 +2,6 @@ const { Lead } = require("../models/lead.model");
 const { escapeRegex } = require("../utils/regex.util");
 
 class LeadRepository {
-  /** ordered:false lets valid rows insert even if some collide with the
-   * unique (leadListId, email) index — a defense-in-depth backstop behind
-   * the in-memory dedupe already done by the service. */
   async insertMany(leads) {
     if (leads.length === 0) {
       return { insertedCount: 0, duplicateCount: 0 };
