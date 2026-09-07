@@ -81,6 +81,7 @@ export function LeadsPage() {
   // no lead lists yet, so the toolbar is hidden in favor of the empty state.
   const showToolbar = isSearchActive || items.length > 0;
   const isInitialLoading = useMinLoadingDuration(status === "loading" && items.length === 0);
+  // const isInitialLoading = useMinLoadingDuration(status === "loading" && items.length === 0);
 
   return (
     <div className="w-full space-y-4">
